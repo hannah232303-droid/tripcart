@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NYC Trip Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --black:#0a0a0a;
+  --white:#f7f5f0;
+  --yellow:#f0d040;
+  --gray:#1a1a1a;
+  --mid:#2e2e2e;
+  --light:#444;
+  --muted:#888;
+  --border:#2a2a2a;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--black);
+  color:var(--white);
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP BAR */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 28px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;
+  letter-spacing:0.08em;
+  color:var(--yellow);
+}
+
+.logo span{color:var(--white)}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.days-input{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.days-input select{
+  background:var(--gray);
+  border:1px solid var(--border);
+  color:var(--white);
+  padding:6px 10px;
+  border-radius:6px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  outline:none;
+}
+
+.cart-count{
+  background:var(--yellow);
+  color:var(--black);
+  font-size:12px;
+  font-weight:500;
+  padding:4px 10px;
+  border-radius:100px;
+}
+
+/* MAIN LAYOUT */
+.main{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+
+/* LEFT: STORE */
+.store{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  border-right:1px solid var(--border);
+  overflow:hidden;
+}
+
+.store-header{
+  padding:20px 28px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.store-header h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  margin-bottom:14px;
+}
+
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.filter-btn{
+  padding:6px 14px;
+  border-radius:100px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--muted);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+
+.filter-btn:hover{border-color:var(--light);color:var(--white)}
+.filter-btn.active{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+
+.store-grid{
+  flex:1;
+  overflow-y:auto;
+  padding:20px 28px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+  align-content:start;
+}
+
+.store-grid::-webkit-scrollbar{width:4px}
+.store-grid::-webkit-scrollbar-track{background:transparent}
+.store-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* PLACE CARD */
+.place-card{
+  background:var(--gray);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+}
+
+.place-card:hover{border-color:var(--light);transform:translateY(-2px)}
+.place-card.in-cart{border-color:var(--yellow)}
+
+.place-img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+  display:block;
+  background:var(--mid);
+  font-size:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.place-info{padding:12px}
+
+.place-name{
+  font-size:14px;
+  font-weight:500;
+  margin-bottom:4px;
+  line-height:1.3;
+}
+
+.place-area{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+
+.place-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin-bottom:10px;
+}
+
+.tag{
+  font-size:10px;
+  padding:2px 8px;
+  border-radius:100px;
+  background:var(--mid);
+  color:var(--muted);
+}
+
+.add-btn{
+  width:100%;
+  padding:8px;
+  border-radius:7px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+
+.add-btn:hover{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+.place-card.in-cart .add-btn{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+
+.in-cart-badge{
+  position:absolute;
+  top:8px;right:8px;
+  background:var(--yellow);
+  color:var(--black);
+  font-size:10px;
+  font-weight:500;
+  padding:2px 8px;
+  border-radius:100px;
+  display:none;
+}
+
+.place-card.in-cart .in-cart-badge{display:block}
+
+/* RIGHT: CART */
+.cart{
+  width:340px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.cart-header{
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.cart-header h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+
+.cart-subtitle{font-size:12px;color:var(--light)}
+
+.cart-items{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 24px;
+}
+
+.cart-items::-webkit-scrollbar{width:3px}
+.cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.empty-cart{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  color:var(--light);
+  text-align:center;
+  gap:12px;
+  padding:40px 0;
+}
+
+.empty-cart .empty-icon{font-size:40px;opacity:0.4}
+.empty-cart p{font-size:13px;line-height:1.6}
+
+.cart-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+  animation:slideIn 0.2s ease;
+}
+
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(10px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+.cart-item-emoji{
+  font-size:24px;
+  width:36px;
+  text-align:center;
+  flex-shrink:0;
+}
+
+.cart-item-info{flex:1;min-width:0}
+
+.cart-item-name{
+  font-size:13px;
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.cart-item-area{font-size:11px;color:var(--muted)}
+
+.remove-btn{
+  background:none;
+  border:none;
+  color:var(--light);
+  cursor:pointer;
+  font-size:16px;
+  padding:4px;
+  transition:color 0.15s;
+  flex-shrink:0;
+}
+
+.remove-btn:hover{color:#e05050}
+
+/* GENERATE BTN */
+.cart-footer{
+  padding:16px 24px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.generate-btn{
+  width:100%;
+  padding:14px;
+  background:var(--yellow);
+  color:var(--black);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18px;
+  letter-spacing:0.1em;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all 0.18s;
+}
+
+.generate-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(240,208,64,0.25)}
+.generate-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* RESULT OVERLAY */
+.overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.overlay.show{display:flex}
+
+.overlay-box{
+  background:var(--gray);
+  border:1px solid var(--border);
+  border-radius:20px;
+  width:100%;
+  max-width:720px;
+  max-height:85vh;
+  display:flex;
+  flex-direction:column;
+  animation:fadeUp 0.3s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.overlay-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:24px 28px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.overlay-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:24px;
+  letter-spacing:0.08em;
+  color:var(--yellow);
+}
+
+.close-btn{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:22px;
+  cursor:pointer;
+  transition:color 0.15s;
+}
+
+.close-btn:hover{color:var(--white)}
+
+.overlay-body{
+  flex:1;
+  overflow-y:auto;
+  padding:28px;
+  line-height:1.8;
+  font-size:14px;
+}
+
+.overlay-body::-webkit-scrollbar{width:4px}
+.overlay-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.overlay-body h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;
+  letter-spacing:0.08em;
+  color:var(--yellow);
+  margin:24px 0 10px;
+}
+
+.overlay-body h2:first-child{margin-top:0}
+.overlay-body h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin:16px 0 6px}
+.overlay-body p{margin-bottom:10px;color:#ccc}
+.overlay-body ul{padding-left:18px;margin-bottom:10px}
+.overlay-body li{margin-bottom:6px;color:#ccc}
+.overlay-body strong{color:var(--white)}
+
+.loading-overlay{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:60px;
+  gap:20px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.loading-overlay.show{display:flex}
+
+.spinner{
+  width:36px;height:36px;
+  border:2px solid var(--border);
+  border-top-color:var(--yellow);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  body{overflow:auto;height:auto}
+  .main{flex-direction:column}
+  .store{border-right:none;border-bottom:1px solid var(--border);min-height:60vh}
+  .cart{width:100%}
+  .store-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">TRIP<span>CART</span></div>
+  <div class="topbar-right">
+    <div class="days-input">
+      旅行天数
+      <select id="tripDays">
+        <option value="3">3 天</option>
+        <option value="5" selected>5 天</option>
+        <option value="7">7 天</option>
+        <option value="10">10 天</option>
+      </select>
+    </div>
+    <div class="cart-count" id="cartCount">0 个地点</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- STORE -->
+  <div class="store">
+    <div class="store-header">
+      <h2>🗽 NEW YORK CITY</h2>
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterPlaces('all', this)">全部</button>
+        <button class="filter-btn" onclick="filterPlaces('曼哈顿', this)">曼哈顿</button>
+        <button class="filter-btn" onclick="filterPlaces('布鲁克林', this)">布鲁克林</button>
+        <button class="filter-btn" onclick="filterPlaces('皇后区', this)">皇后区</button>
+        <button class="filter-btn" onclick="filterPlaces('美食', this)">🍽 美食</button>
+        <button class="filter-btn" onclick="filterPlaces('博物馆', this)">🏛 博物馆</button>
+        <button class="filter-btn" onclick="filterPlaces('景点', this)">📸 景点</button>
+        <button class="filter-btn" onclick="filterPlaces('购物', this)">🛍 购物</button>
+        <button class="filter-btn" onclick="filterPlaces('公园', this)">🌿 公园</button>
+      </div>
+    </div>
+    <div class="store-grid" id="storeGrid"></div>
+  </div>
+
+  <!-- CART -->
+  <div class="cart">
+    <div class="cart-header">
+      <h2>我的行程单</h2>
+      <div class="cart-subtitle">选好地点，AI 帮你排路线</div>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="empty-cart">
+        <div class="empty-icon">🗺</div>
+        <p>点击左边的地点<br/>加入你的行程单</p>
+      </div>
+    </div>
+    <div class="cart-footer">
+      <button class="generate-btn" id="generateBtn" onclick="generateItinerary()" disabled>
+        AI 帮我排行程 →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="overlay-header">
+      <div class="overlay-title">你的纽约行程</div>
+      <button class="close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div>AI 正在帮你优化路线…</div>
+    </div>
+    <div class="overlay-body" id="overlayBody" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const PLACES = [
+  {id:1, name:'Metropolitan Museum of Art', area:'曼哈顿', zone:'上东城', emoji:'🎨', tags:['博物馆','艺术'], desc:'世界顶级艺术博物馆，馆藏超200万件'},
+  {id:2, name:'Central Park', area:'曼哈顿', zone:'中央', emoji:'🌿', tags:['公园','景点'], desc:'843英亩城市绿肺，四季皆宜'},
+  {id:3, name:'High Line', area:'曼哈顿', zone:'切尔西', emoji:'🚶', tags:['公园','景点'], desc:'废弃铁轨改建的空中花园公园'},
+  {id:4, name:'MoMA', area:'曼哈顿', zone:'中城', emoji:'🖼', tags:['博物馆','艺术'], desc:'现代艺术圣地，梵高星夜在此'},
+  {id:5, name:'Brooklyn Bridge', area:'布鲁克林', zone:'DUMBO', emoji:'🌉', tags:['景点','拍照'], desc:'标志性大桥，步行可欣赏曼哈顿全景'},
+  {id:6, name:'Katz\'s Delicatessen', area:'曼哈顿', zone:'下东城', emoji:'🥪', tags:['美食'], desc:'1888年老店，纽约最著名的熟食三明治'},
+  {id:7, name:'DUMBO', area:'布鲁克林', zone:'DUMBO', emoji:'📸', tags:['景点','拍照','购物'], desc:'最美曼哈顿取景地，文艺街区'},
+  {id:8, name:'Chelsea Market', area:'曼哈顿', zone:'切尔西', emoji:'🛍', tags:['购物','美食'], desc:'美食+艺术+购物综合市场'},
+  {id:9, name:'Times Square', area:'曼哈顿', zone:'中城', emoji:'🎭', tags:['景点','购物'], desc:'世界十字路口，霓虹灯海洋'},
+  {id:10, name:'The Oculus', area:'曼哈顿', zone:'下城', emoji:'🏛', tags:['景点','购物'], desc:'卡拉特拉瓦设计的交通枢纽建筑'},
+  {id:11, name:'Brooklyn Flea Market', area:'布鲁克林', zone:'威廉斯堡', emoji:'🎪', tags:['购物','景点'], desc:'最酷的跳蚤市场，古着vintage天堂'},
+  {id:12, name:'One World Observatory', area:'曼哈顿', zone:'下城', emoji:'🏙', tags:['景点','拍照'], desc:'纽约最高观景台，360度俯瞰全城'},
+  {id:13, name:'Smorgasburg', area:'布鲁克林', zone:'威廉斯堡', emoji:'🍔', tags:['美食'], desc:'周末户外美食市集，汇聚百家小吃'},
+  {id:14, name:'The Shed', area:'曼哈顿', zone:'哈德逊广场', emoji:'🎪', tags:['博物馆','艺术'], desc:'多功能当代艺术中心'},
+  {id:15, name:'Whitney Museum', area:'曼哈顿', zone:'肉库区', emoji:'🎨', tags:['博物馆','艺术'], desc:'美国艺术专属博物馆，绝佳哈德逊河景'},
+  {id:16, name:'Flushing Chinatown', area:'皇后区', zone:'法拉盛', emoji:'🥟', tags:['美食','景点'], desc:'全美最大华人社区，正宗亚洲美食'},
+  {id:17, name:'Prospect Park', area:'布鲁克林', zone:'公园坡', emoji:'🌳', tags:['公园'], desc:'布鲁克林版中央公园，本地人最爱'},
+  {id:18, name:'Williamsburg', area:'布鲁克林', zone:'威廉斯堡', emoji:'🎸', tags:['景点','购物','美食'], desc:'纽约最hipster街区，独立小店密集'},
+  {id:19, name:'Grand Central Terminal', area:'曼哈顿', zone:'中城', emoji:'🚂', tags:['景点'], desc:'百年历史车站，天花板星座壁画'},
+  {id:20, name:'Rockefeller Center', area:'曼哈顿', zone:'中城', emoji:'⛸', tags:['景点','拍照'], desc:'Top of the Rock观景台，可见帝国大厦'},
+];
+
+let cart = [];
+let currentFilter = 'all';
+
+function renderStore(places) {
+  const grid = document.getElementById('storeGrid');
+  grid.innerHTML = places.map(p => `
+    <div class="place-card ${cart.find(c=>c.id===p.id)?'in-cart':''}" id="card-${p.id}">
+      <div class="place-img">${p.emoji}</div>
+      <div class="in-cart-badge">✓ 已加入</div>
+      <div class="place-info">
+        <div class="place-name">${p.name}</div>
+        <div class="place-area">${p.area} · ${p.zone}</div>
+        <div class="place-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <button class="add-btn" onclick="toggleCart(${p.id})">
+          ${cart.find(c=>c.id===p.id) ? '✓ 已加入行程' : '+ 加入行程单'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterPlaces(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = filter === 'all' ? PLACES :
+    PLACES.filter(p => p.area === filter || p.tags.includes(filter));
+  renderStore(filtered);
+}
+
+function toggleCart(id) {
+  const place = PLACES.find(p => p.id === id);
+  const idx = cart.findIndex(c => c.id === id);
+  if (idx > -1) {
+    cart.splice(idx, 1);
+  } else {
+    cart.push(place);
+  }
+  updateCart();
+  // re-render current filter
+  const filtered = currentFilter === 'all' ? PLACES :
+    PLACES.filter(p => p.area === currentFilter || p.tags.includes(currentFilter));
+  renderStore(filtered);
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  updateCart();
+  const filtered = currentFilter === 'all' ? PLACES :
+    PLACES.filter(p => p.area === currentFilter || p.tags.includes(currentFilter));
+  renderStore(filtered);
+}
+
+function updateCart() {
+  const container = document.getElementById('cartItems');
+  const count = document.getElementById('cartCount');
+  const btn = document.getElementById('generateBtn');
+
+  count.textContent = `${cart.length} 个地点`;
+  btn.disabled = cart.length === 0;
+
+  if (cart.length === 0) {
+    container.innerHTML = `
+      <div class="empty-cart">
+        <div class="empty-icon">🗺</div>
+        <p>点击左边的地点<br/>加入你的行程单</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = cart.map(p => `
+    <div class="cart-item">
+      <div class="cart-item-emoji">${p.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.name}</div>
+        <div class="cart-item-area">${p.area} · ${p.zone}</div>
+      </div>
+      <button class="remove-btn" onclick="removeFromCart(${p.id})">×</button>
+    </div>
+  `).join('');
+}
+
+async function generateItinerary() {
+  const days = document.getElementById('tripDays').value;
+  const overlay = document.getElementById('overlay');
+  const loading = document.getElementById('loadingOverlay');
+  const body = document.getElementById('overlayBody');
+
+  overlay.classList.add('show');
+  loading.classList.add('show');
+  body.style.display = 'none';
+
+  const placesList = cart.map(p => `- ${p.name}（${p.area}·${p.zone}）：${p.desc}`).join('\n');
+
+  const prompt = `你是一位专业纽约旅行规划师。用户选择了以下想去的地方，请帮他们规划一份 ${days} 天的纽约行程。
+
+用户选择的地点：
+${placesList}
+
+规划要求：
+1. 按照地理位置把地点归类，同一天安排附近的地点，减少跨区通勤
+2. 每天安排3-5个地点，节奏合理不要太赶
+3. 如果某天地点不够，可以补充推荐附近值得去的地方
+4. 每天推荐1-2个餐厅（结合所在区域特色）
+5. 最后给出住宿区域建议，说明住哪里最方便
+
+格式：
+## 第X天：[这天的主题/区域]
+### 行程安排
+每个地点用一句话说明亮点和建议游览时长
+### 今日餐厅推荐
+### 小贴士
+
+## 住宿建议
+根据行程密度推荐最方便的住宿区域
+
+语气要像朋友分享，轻松有温度，不要太正式。`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '生成失败，请重试';
+
+    body.innerHTML = renderMd(text);
+    loading.classList.remove('show');
+    body.style.display = 'block';
+  } catch(e) {
+    loading.classList.remove('show');
+    body.style.display = 'block';
+    body.innerHTML = '<p style="color:#e05050">出了点问题，请稍后再试～</p>';
+  }
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function renderMd(text) {
+  return text
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, m => m.startsWith('<') ? m : `<p>${m}</p>`)
+    .replace(/<p><\/p>/g, '');
+}
+
+// init
+renderStore(PLACES);
+</script>
+</body>
+</html>
